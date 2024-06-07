@@ -1,0 +1,168 @@
+.section .text
+.globl _start
+
+.equ GPIO_MODE_INPUT, 0
+.equ GPIO_MODE_OUTPUT, 1
+.equ GPIO_HIGH, 1
+.equ GPIO_LOW, 0
+
+.equ RED_LED_PIN, 17     @ GPIO pin 17 (BCM pin 11)
+.equ YELLOW_LED_PIN, 27  @ GPIO pin 27 (BCM pin 13)
+.equ GREEN_LED_PIN, 22   @ GPIO pin 22 (BCM pin 15)
+
+.equ WALK_RED_LED_PIN, 5    @ GPIO pin 5 (BCM pin 3)
+.equ WALK_GREEN_LED_PIN, 6  @ GPIO pin 6 (BCM pin 4)
+.equ BUTTON_PIN, 13         @ GPIO pin 13 (BCM pin 27)
+
+.equ BUTTON_PRESSED, 0
+
+_start:
+    @ Initialize GPIO pins for LEDs and button
+    bl init_gpio
+
+main_loop:
+    @ Wait for button press
+    bl wait_for_button_press
+    
+    @ Traffic light sequence
+    @ Red -> Green -> Yellow -> Red
+    @ Pedestrian light sequence
+    @ Red -> Green -> 15 sec -> Red
+    bl set_red_led
+    bl set_green_street_light
+    bl wait_for_duration
+    
+    bl set_yellow_led
+    bl set_red_street_light
+    bl wait_for_duration
+    
+    bl set_red_led
+    bl set_red_street_light
+    bl wait_for_duration
+    
+    @ Set pedestrian light to green
+    bl set_green_led
+    bl set_walk_green_led
+    
+    @ Wait for 15 seconds
+    mov r0, #15
+    bl wait_for_duration
+    
+    @ Turn off pedestrian green LED
+    bl clear_green_led
+    bl clear_walk_green_led
+
+    b main_loop
+
+init_gpio:
+    @ Initialize GPIO pins
+    @ Set pins as input or output as needed
+    @ Configure pull-up or pull-down resistors
+    @ Set initial states if needed
+    mov r0, #RED_LED_PIN      @ Red LED for traffic light
+    mov r1, #GPIO_MODE_OUTPUT
+    bl set_gpio_mode
+
+    mov r0, #YELLOW_LED_PIN   @ Yellow LED for traffic light
+    mov r1, #GPIO_MODE_OUTPUT
+    bl set_gpio_mode
+
+    mov r0, #GREEN_LED_PIN    @ Green LED for traffic light
+    mov r1, #GPIO_MODE_OUTPUT
+    bl set_gpio_mode
+
+    mov r0, #WALK_RED_LED_PIN    @ Red LED for walk/don't walk
+    mov r1, #GPIO_MODE_OUTPUT
+    bl set_gpio_mode
+
+    mov r0, #WALK_GREEN_LED_PIN  @ Green LED for walk/don't walk
+    mov r1, #GPIO_MODE_OUTPUT
+    bl set_gpio_mode
+
+    mov r0, #BUTTON_PIN       @ Button
+    mov r1, #GPIO_MODE_INPUT
+    bl set_gpio_mode
+
+    bx lr
+
+wait_for_button_press:
+    @ Wait for the button to be pressed
+    @ Poll the GPIO pin connected to the button
+    @ Return when the button is pressed
+    @ This function will depend on your hardware setup
+    @ Implement this function according to your button GPIO pin assignment
+    mov r0, #BUTTON_PIN
+    bl digitalRead
+    cmp r0, #BUTTON_PRESSED
+    beq wait_for_button_press
+    bx lr
+
+set_red_led:
+    mov r0, #RED_LED_PIN
+    mov r1, #GPIO_LOW      @ Turn on red LED
+    bl digitalWrite
+    bx lr
+
+set_yellow_led:
+    mov r0, #YELLOW_LED_PIN
+    mov r1, #GPIO_LOW      @ Turn on yellow LED
+    bl digitalWrite
+    bx lr
+
+set_green_led:
+    mov r0, #WALK_RED_LED_PIN
+    mov r1, #GPIO_LOW      @ Turn on green LED for walk/don't walk
+    bl digitalWrite
+    bx lr
+
+clear_red_led:
+    mov r0, #RED_LED_PIN
+    mov r1, #GPIO_HIGH     @ Turn off red LED
+    bl digitalWrite
+    bx lr
+
+clear_green_led:
+    mov r0, #WALK_GREEN_LED_PIN
+    mov r1, #GPIO_HIGH     @ Turn off green LED for walk/don't walk
+    bl digitalWrite
+    bx lr
+
+set_red_street_light:
+    mov r0, #GREEN_LED_PIN
+    mov r1, #GPIO_HIGH     @ Turn on red LED for street light
+    bl digitalWrite
+    bx lr
+
+set_green_street_light:
+    mov r0, #YELLOW_LED_PIN
+    mov r1, #GPIO_HIGH     @ Turn on green LED for street light
+    bl digitalWrite
+    bx lr
+
+set_walk_green_led:
+    mov r0, #WALK_GREEN_LED_PIN
+    mov r1, #GPIO_LOW      @ Turn on green LED for walk/don't walk
+    bl digitalWrite
+    bx lr
+
+clear_walk_green_led:
+    mov r0, #WALK_GREEN_LED_PIN
+    mov r1, #GPIO_HIGH     @ Turn off green LED for walk/don't walk
+    bl digitalWrite
+    bx lr
+
+wait_for_duration:
+    @ Wait for a specified duration (seconds)
+    @ Input: r0 = duration
+    mov r1, r0         @ Copy duration to r1
+loop_wait:
+    bl delay           @ Delay 1 second
+    subs r1, r1, #1    @ Decrement duration
+    bne loop_wait      @ Loop until duration becomes zero
+    bx lr
+
+flash_green_and_yellow:
+    @ Flash the green and yellow LEDs for the street light
+    @ This function will depend on your requirements
+    @ Implement this function to flash the green and yellow LEDs
+    bx lr
