@@ -1,3 +1,7 @@
+//as -o street_crossing.o street_crossing.s
+//ld -o street_crossing street_crossing.o
+
+
 .section .text
 .globl _start
 
